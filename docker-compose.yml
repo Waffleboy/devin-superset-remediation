@@ -1,0 +1,21 @@
+services:
+  orchestrator:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      # Flip to "false" and supply the keys below for a live Devin run.
+      DEMO_MODE: "${DEMO_MODE:-true}"
+      DEVIN_API_KEY: "${DEVIN_API_KEY:-}"
+      DEVIN_ORG_ID: "${DEVIN_ORG_ID:-}"
+      DEVIN_PLAYBOOK_ID: "${DEVIN_PLAYBOOK_ID:-}"
+      GITHUB_TOKEN: "${GITHUB_TOKEN:-}"
+      GITHUB_REPO: "${GITHUB_REPO:-local-demo/superset}"
+      GITHUB_WEBHOOK_SECRET: "${GITHUB_WEBHOOK_SECRET:-}"
+      ENGAGEMENT: "${ENGAGEMENT:-superset-secops}"
+      DB_PATH: "/app/data/state.db"
+      # In live mode, this mount lets scanner.py run npm audit / pip-audit.
+      REPO_PATH: "${REPO_PATH:-/superset}"
+    volumes:
+      - ./data:/app/data
+      - ${SUPERSET_CHECKOUT:-../superset}:/superset:ro

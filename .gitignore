@@ -1,0 +1,12 @@
+.env
+.env.*
+!.env.example
+.venv/
+__pycache__/
+*.pyc
+.ruff_cache/
+.mypy_cache/
+data/
+*.db
+desktop.ini
+**/desktop.ini

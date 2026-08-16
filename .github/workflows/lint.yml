@@ -1,0 +1,31 @@
+# Quality gate: ruff (lint + format) and mypy, run through uv against the
+# lockfile so CI uses the exact same dependency set as local dev and Docker.
+name: lint-and-typecheck
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch: {}
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Sync dependencies (incl. dev tools) from uv.lock
+        run: uv sync --frozen
+
+      - name: ruff (lint)
+        run: uv run ruff check
+
+      - name: ruff (format check)
+        run: uv run ruff format --check
+
+      - name: mypy
+        run: uv run mypy

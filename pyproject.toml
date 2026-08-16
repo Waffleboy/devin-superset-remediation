@@ -1,0 +1,85 @@
+[project]
+name = "devin-superset-remediation"
+version = "1.0.0"
+description = "Event-driven orchestrator that turns Superset findings into independently-verified Devin PRs."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+dependencies = [
+    "fastapi==0.115.6",
+    "uvicorn[standard]==0.34.0",
+    "httpx==0.28.1",
+    "apscheduler==3.11.0",
+    "pip-audit==2.7.3", # live vulnerability scanning against the Superset checkout
+]
+
+[dependency-groups]
+# Dev tooling: `uv sync` installs these by default; the Docker image runs
+# `uv sync --no-dev` so they never land in the runtime container.
+dev = [
+    "ruff>=0.9.0",
+    "mypy>=1.14.0",
+]
+
+# The orchestrator uses flat, top-level imports (`import db`) and runs with the
+# `orchestrator/` directory on sys.path, so it is not an installable package —
+# only a set of modules plus helper scripts. Tell the build layer not to look
+# for a package to install; uv treats this as a virtual (dependency-only) project.
+[tool.uv]
+package = false
+
+# ---------------------------------------------------------------------------
+# ruff — linter + formatter. The ruleset is deliberately rich: the codebase
+# already carries `# noqa: BLE001 / PLC0415` pragmas anticipating it, and
+# issue #3 in the demo set is literally "enable ruff PGH003".
+# ---------------------------------------------------------------------------
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+src = ["orchestrator", "scripts"]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "F",    # pyflakes
+    "W",    # pycodestyle warnings
+    "I",    # isort
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "SIM",  # flake8-simplify
+    "BLE",  # flake8-blind-except (the `# noqa: BLE001` pragmas)
+    "PGH",  # pygrep-hooks (PGH003: blanket type:ignore — the issue #3 theme)
+    "PLC",  # pylint convention (PLC0415: import-outside-top-level)
+    "PLE",  # pylint error
+    "RUF",  # ruff-specific
+]
+# E501 (line-too-long) is left to the formatter; the grounded findings carry
+# long, human-facing advisory prose we don't want mechanically wrapped.
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = [
+    "db", "scanner", "verifier", "devin_client", "mock_devin",
+    "github_client", "issue_format", "dashboard",
+]
+
+# ---------------------------------------------------------------------------
+# mypy — the modules use flat imports, so `orchestrator/` is the source root
+# (mypy_path), not a package. Pragmatic, not --strict: the codebase is already
+# well-annotated at its boundaries; we type-check without demanding annotations
+# on every internal helper.
+# ---------------------------------------------------------------------------
+[tool.mypy]
+python_version = "3.10"
+files = ["orchestrator", "scripts"]
+mypy_path = "orchestrator"
+check_untyped_defs = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_unused_configs = true
+no_implicit_optional = true
+
+# APScheduler ships no type information.
+[[tool.mypy.overrides]]
+module = ["apscheduler.*"]
+ignore_missing_imports = true

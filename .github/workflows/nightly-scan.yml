@@ -1,0 +1,24 @@
+# The "event" in event-driven: a scheduled scan that pokes the orchestrator.
+# In a real deployment this runs against the live orchestrator URL; the cron is
+# the periodic trigger the assignment asks for.
+name: nightly-remediation-scan
+
+on:
+  schedule:
+    - cron: "0 2 * * *"   # 02:00 UTC nightly
+  workflow_dispatch: {}    # manual trigger from the Actions tab
+
+jobs:
+  trigger-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kick off a remediation scan
+        env:
+          ORCH_URL: ${{ secrets.ORCHESTRATOR_URL }}
+        run: |
+          test -n "$ORCH_URL" || {
+            echo "Set the ORCHESTRATOR_URL repository secret to the deployed orchestrator URL."
+            exit 1
+          }
+          curl -fsS -X POST "$ORCH_URL/api/scan" \
+            -H "Content-Type: application/json"
