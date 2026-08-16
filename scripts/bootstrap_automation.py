@@ -70,9 +70,17 @@ def build_body() -> dict:
                         {
                             "all": [
                                 {"field": "repository.full_name", "operator": "eq", "value": REPO},
-                                {"field": "check_run.conclusion", "operator": "eq", "value": "failure"},
+                                {
+                                    "field": "check_run.conclusion",
+                                    "operator": "eq",
+                                    "value": "failure",
+                                },
                                 {"field": "check_run.name", "operator": "eq", "value": CHECK_NAME},
-                                {"field": "check_run.check_suite.head_branch", "operator": "starts_with", "value": "devin/"},
+                                {
+                                    "field": "check_run.check_suite.head_branch",
+                                    "operator": "starts_with",
+                                    "value": "devin/",
+                                },
                             ]
                         }
                     ]

@@ -326,7 +326,7 @@ def consumption_total_acu(payload: dict[str, Any]) -> float | None:
         rows = payload.get(key)
         if isinstance(rows, list):
             values = [_first_acu_field(r) for r in rows if isinstance(r, dict)]
-            values = [v for v in values if v is not None]
-            if values:
-                return round(sum(values), 2)
+            present = [v for v in values if v is not None]
+            if present:
+                return round(sum(present), 2)
     return None
